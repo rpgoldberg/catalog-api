@@ -24,7 +24,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 "newuser@example.com", "New User", "password123");
 
         ResponseEntity<AuthResponse> response =
-                restTemplate.postForEntity("/api/auth/register", request, AuthResponse.class);
+                restTemplate.postForEntity("/auth/register", request, AuthResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
@@ -36,14 +36,14 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     void register_shouldRejectDuplicateEmail() {
         RegisterRequest request = new RegisterRequest(
                 "duplicate@example.com", "User One", "password123");
-        restTemplate.postForEntity("/api/auth/register", request, AuthResponse.class);
+        restTemplate.postForEntity("/auth/register", request, AuthResponse.class);
 
         RegisterRequest duplicate = new RegisterRequest(
                 "duplicate@example.com", "User Two", "password456");
 
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.postForEntity("/api/auth/register", duplicate, Map.class);
+                restTemplate.postForEntity("/auth/register", duplicate, Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -52,12 +52,12 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     void login_shouldReturnTokenForValidCredentials() {
         RegisterRequest registerReq = new RegisterRequest(
                 "logintest@example.com", "Login User", "password123");
-        restTemplate.postForEntity("/api/auth/register", registerReq, AuthResponse.class);
+        restTemplate.postForEntity("/auth/register", registerReq, AuthResponse.class);
 
         LoginRequest loginReq = new LoginRequest("logintest@example.com", "password123");
 
         ResponseEntity<AuthResponse> response =
-                restTemplate.postForEntity("/api/auth/login", loginReq, AuthResponse.class);
+                restTemplate.postForEntity("/auth/login", loginReq, AuthResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -68,13 +68,13 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     void login_shouldRejectInvalidPassword() {
         RegisterRequest registerReq = new RegisterRequest(
                 "badpasstest@example.com", "User", "password123");
-        restTemplate.postForEntity("/api/auth/register", registerReq, AuthResponse.class);
+        restTemplate.postForEntity("/auth/register", registerReq, AuthResponse.class);
 
         LoginRequest loginReq = new LoginRequest("badpasstest@example.com", "wrongpassword");
 
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.postForEntity("/api/auth/login", loginReq, Map.class);
+                restTemplate.postForEntity("/auth/login", loginReq, Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -86,7 +86,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.postForEntity("/api/auth/register", request, Map.class);
+                restTemplate.postForEntity("/auth/register", request, Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -98,7 +98,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.postForEntity("/api/auth/register", request, Map.class);
+                restTemplate.postForEntity("/auth/register", request, Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }

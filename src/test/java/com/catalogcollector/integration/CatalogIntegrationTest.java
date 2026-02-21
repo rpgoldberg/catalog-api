@@ -30,7 +30,7 @@ class CatalogIntegrationTest extends BaseIntegrationTest {
         RegisterRequest registerReq = new RegisterRequest(
                 "catalog-" + System.nanoTime() + "@example.com", "Catalog User", "password123");
         ResponseEntity<AuthResponse> authResponse =
-                restTemplate.postForEntity("/api/auth/register", registerReq, AuthResponse.class);
+                restTemplate.postForEntity("/auth/register", registerReq, AuthResponse.class);
         authToken = authResponse.getBody().token();
     }
 
@@ -44,7 +44,7 @@ class CatalogIntegrationTest extends BaseIntegrationTest {
         HttpEntity<CatalogItemRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<CatalogItemResponse> response =
-                restTemplate.exchange("/api/catalog/items", HttpMethod.POST,
+                restTemplate.exchange("/catalog/items", HttpMethod.POST,
                         entity, CatalogItemResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -60,11 +60,11 @@ class CatalogIntegrationTest extends BaseIntegrationTest {
                 null, null, null, null, null);
 
         HttpHeaders headers = authHeaders();
-        restTemplate.exchange("/api/catalog/items", HttpMethod.POST,
+        restTemplate.exchange("/catalog/items", HttpMethod.POST,
                 new HttpEntity<>(request, headers), CatalogItemResponse.class);
 
         ResponseEntity<CatalogItemResponse[]> response =
-                restTemplate.exchange("/api/catalog/items", HttpMethod.GET,
+                restTemplate.exchange("/catalog/items", HttpMethod.GET,
                         new HttpEntity<>(headers), CatalogItemResponse[].class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -79,11 +79,11 @@ class CatalogIntegrationTest extends BaseIntegrationTest {
 
         HttpHeaders headers = authHeaders();
         ResponseEntity<CatalogItemResponse> created =
-                restTemplate.exchange("/api/catalog/items", HttpMethod.POST,
+                restTemplate.exchange("/catalog/items", HttpMethod.POST,
                         new HttpEntity<>(request, headers), CatalogItemResponse.class);
 
         ResponseEntity<CatalogItemResponse> response =
-                restTemplate.exchange("/api/catalog/items/" + created.getBody().id(),
+                restTemplate.exchange("/catalog/items/" + created.getBody().id(),
                         HttpMethod.GET, new HttpEntity<>(headers), CatalogItemResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -97,12 +97,12 @@ class CatalogIntegrationTest extends BaseIntegrationTest {
                 barcode, "UPC", "Lookup Item", null, null, null, null, null);
 
         HttpHeaders headers = authHeaders();
-        restTemplate.exchange("/api/catalog/items", HttpMethod.POST,
+        restTemplate.exchange("/catalog/items", HttpMethod.POST,
                 new HttpEntity<>(request, headers), CatalogItemResponse.class);
 
         // No auth header — public endpoint
         ResponseEntity<CatalogItemResponse> response =
-                restTemplate.getForEntity("/api/catalog/lookup/" + barcode,
+                restTemplate.getForEntity("/catalog/lookup/" + barcode,
                         CatalogItemResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -113,7 +113,7 @@ class CatalogIntegrationTest extends BaseIntegrationTest {
     void lookupByBarcode_shouldReturn404ForUnknown() {
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.getForEntity("/api/catalog/lookup/unknown-barcode", Map.class);
+                restTemplate.getForEntity("/catalog/lookup/unknown-barcode", Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }

@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/catalog")
+@RequestMapping("/catalog")
 public class CatalogController {
 
     private final CatalogService catalogService;

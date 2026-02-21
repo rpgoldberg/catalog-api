@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/collections")
+@RequestMapping("/collections")
 public class CollectionController {
 
     private final CollectionService collectionService;

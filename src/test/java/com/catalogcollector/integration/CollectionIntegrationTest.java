@@ -38,7 +38,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
                 "collection-" + System.nanoTime() + "@example.com",
                 "Collection User", "password123");
         ResponseEntity<AuthResponse> authResponse =
-                restTemplate.postForEntity("/api/auth/register", registerReq, AuthResponse.class);
+                restTemplate.postForEntity("/auth/register", registerReq, AuthResponse.class);
         authToken = authResponse.getBody().token();
 
         // Create a catalog item
@@ -47,7 +47,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
                 "TestBrand", "Figures", null, null, null);
         HttpHeaders headers = authHeaders();
         ResponseEntity<CatalogItemResponse> itemResponse =
-                restTemplate.exchange("/api/catalog/items", HttpMethod.POST,
+                restTemplate.exchange("/catalog/items", HttpMethod.POST,
                         new HttpEntity<>(itemReq, headers), CatalogItemResponse.class);
         catalogItemId = itemResponse.getBody().id();
     }
@@ -60,7 +60,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
 
         HttpHeaders headers = authHeaders();
         ResponseEntity<CollectionEntryResponse> response =
-                restTemplate.exchange("/api/collections", HttpMethod.POST,
+                restTemplate.exchange("/collections", HttpMethod.POST,
                         new HttpEntity<>(request, headers), CollectionEntryResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -75,11 +75,11 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
                 catalogItemId, "Good", null, null, null, 2);
 
         HttpHeaders headers = authHeaders();
-        restTemplate.exchange("/api/collections", HttpMethod.POST,
+        restTemplate.exchange("/collections", HttpMethod.POST,
                 new HttpEntity<>(request, headers), CollectionEntryResponse.class);
 
         ResponseEntity<CollectionEntryResponse[]> response =
-                restTemplate.exchange("/api/collections", HttpMethod.GET,
+                restTemplate.exchange("/collections", HttpMethod.GET,
                         new HttpEntity<>(headers), CollectionEntryResponse[].class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -93,11 +93,11 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
 
         HttpHeaders headers = authHeaders();
         ResponseEntity<CollectionEntryResponse> created =
-                restTemplate.exchange("/api/collections", HttpMethod.POST,
+                restTemplate.exchange("/collections", HttpMethod.POST,
                         new HttpEntity<>(request, headers), CollectionEntryResponse.class);
 
         ResponseEntity<CollectionEntryResponse> response =
-                restTemplate.exchange("/api/collections/" + created.getBody().id(),
+                restTemplate.exchange("/collections/" + created.getBody().id(),
                         HttpMethod.GET, new HttpEntity<>(headers), CollectionEntryResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -111,7 +111,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
 
         HttpHeaders headers = authHeaders();
         ResponseEntity<CollectionEntryResponse> created =
-                restTemplate.exchange("/api/collections", HttpMethod.POST,
+                restTemplate.exchange("/collections", HttpMethod.POST,
                         new HttpEntity<>(createReq, headers), CollectionEntryResponse.class);
 
         CollectionEntryRequest updateReq = new CollectionEntryRequest(
@@ -119,7 +119,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
                 LocalDate.of(2025, 6, 1), "Upgraded condition", 1);
 
         ResponseEntity<CollectionEntryResponse> response =
-                restTemplate.exchange("/api/collections/" + created.getBody().id(),
+                restTemplate.exchange("/collections/" + created.getBody().id(),
                         HttpMethod.PUT, new HttpEntity<>(updateReq, headers),
                         CollectionEntryResponse.class);
 
@@ -135,11 +135,11 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
 
         HttpHeaders headers = authHeaders();
         ResponseEntity<CollectionEntryResponse> created =
-                restTemplate.exchange("/api/collections", HttpMethod.POST,
+                restTemplate.exchange("/collections", HttpMethod.POST,
                         new HttpEntity<>(request, headers), CollectionEntryResponse.class);
 
         ResponseEntity<Void> response =
-                restTemplate.exchange("/api/collections/" + created.getBody().id(),
+                restTemplate.exchange("/collections/" + created.getBody().id(),
                         HttpMethod.DELETE, new HttpEntity<>(headers), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
@@ -150,7 +150,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
         // No auth header
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.getForEntity("/api/collections", Map.class);
+                restTemplate.getForEntity("/collections", Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -162,7 +162,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
                 catalogItemId, null, null, null, null, 1);
         HttpHeaders headers = authHeaders();
         ResponseEntity<CollectionEntryResponse> created =
-                restTemplate.exchange("/api/collections", HttpMethod.POST,
+                restTemplate.exchange("/collections", HttpMethod.POST,
                         new HttpEntity<>(request, headers), CollectionEntryResponse.class);
 
         // Register second user
@@ -170,7 +170,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
                 "other-" + System.nanoTime() + "@example.com",
                 "Other User", "password123");
         ResponseEntity<AuthResponse> otherAuth =
-                restTemplate.postForEntity("/api/auth/register", registerReq, AuthResponse.class);
+                restTemplate.postForEntity("/auth/register", registerReq, AuthResponse.class);
 
         HttpHeaders otherHeaders = new HttpHeaders();
         otherHeaders.setBearerAuth(otherAuth.getBody().token());
@@ -178,7 +178,7 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
         // Try to access first user's entry
         @SuppressWarnings("unchecked")
         ResponseEntity<Map> response =
-                restTemplate.exchange("/api/collections/" + created.getBody().id(),
+                restTemplate.exchange("/collections/" + created.getBody().id(),
                         HttpMethod.GET, new HttpEntity<>(otherHeaders), Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);

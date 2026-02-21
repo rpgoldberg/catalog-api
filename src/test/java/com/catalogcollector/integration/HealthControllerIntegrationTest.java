@@ -18,7 +18,7 @@ class HealthControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     void healthEndpoint_shouldReturnUp() {
         @SuppressWarnings("unchecked")
-        ResponseEntity<Map> response = restTemplate.getForEntity("/api/health", Map.class);
+        ResponseEntity<Map> response = restTemplate.getForEntity("/health", Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).containsEntry("status", "UP");

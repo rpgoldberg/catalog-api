@@ -32,9 +32,9 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/health").permitAll()
-                        .requestMatchers("/api/catalog/lookup/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/health").permitAll()
+                        .requestMatchers("/catalog/lookup/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);
