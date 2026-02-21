@@ -1,7 +1,6 @@
 # Gradle
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/
@@ -15,25 +14,37 @@ build/
 .factorypath
 *.swp
 *~
+.nb-gradle/
+out/
 
-# Compiled
+# Compiled class files
 *.class
+
+# Package files (keep Gradle wrapper jar)
 *.jar
 *.war
 *.ear
 *.nar
+!gradle/wrapper/gradle-wrapper.jar
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+._*
 
 # Logs
 *.log
+spring.log
 
 # Environment / secrets
 .env
 *.env.local
+*.pem
+*.key
 
-# Application
+# Application runtime
 /data/
 /logs/
+hs_err_pid*
+replay_pid*
