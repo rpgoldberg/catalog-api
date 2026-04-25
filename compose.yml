@@ -1,4 +1,23 @@
 services:
+  catalog-api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/catalog_db
+      DATABASE_USERNAME: catalog_user
+      DATABASE_PASSWORD: catalog_pass
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-minimum-256-bits}
+      REDIS_HOST: redis
+    ports:
+      # Host 8180 — 8080 is owned by coolify-proxy. Container still listens on 8080.
+      - "8180:8080"
+    restart: unless-stopped
+
   postgres:
     image: postgres:16-alpine
     container_name: catalog-postgres

@@ -3,12 +3,15 @@ package com.catalogcollector.service;
 import com.catalogcollector.controller.GlobalExceptionHandler.ResourceNotFoundException;
 import com.catalogcollector.dto.CollectionEntryRequest;
 import com.catalogcollector.dto.CollectionEntryResponse;
+import com.catalogcollector.dto.CursorPage;
 import com.catalogcollector.entity.CatalogItem;
 import com.catalogcollector.entity.CollectionEntry;
 import com.catalogcollector.entity.User;
 import com.catalogcollector.repository.CatalogItemRepository;
 import com.catalogcollector.repository.CollectionEntryRepository;
 import com.catalogcollector.repository.UserRepository;
+import com.catalogcollector.service.CursorPaginationHelper.DecodedCursor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,33 @@ public class CollectionService {
         return collectionEntryRepository.findByUserId(userId).stream()
                 .map(CollectionEntryResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CursorPage<CollectionEntryResponse> getUserCollectionPaged(UUID userId,
+                                                                      String cursor, int size) {
+        List<CollectionEntry> entries;
+        if (cursor == null || cursor.isEmpty()) {
+            entries = collectionEntryRepository.findByUserIdFirstPage(
+                    userId, PageRequest.of(0, size + 1));
+        } else {
+            DecodedCursor decoded = CursorPaginationHelper.decode(cursor);
+            entries = collectionEntryRepository.findByUserIdAfterCursor(
+                    userId, decoded.timestamp(), decoded.id(), PageRequest.of(0, size + 1));
+        }
+
+        boolean hasMore = entries.size() > size;
+        List<CollectionEntry> pageEntries = hasMore ? entries.subList(0, size) : entries;
+        String nextCursor = null;
+        if (hasMore && !pageEntries.isEmpty()) {
+            CollectionEntry last = pageEntries.getLast();
+            nextCursor = CursorPaginationHelper.encode(last.getCreatedAt(), last.getId());
+        }
+
+        List<CollectionEntryResponse> content = pageEntries.stream()
+                .map(CollectionEntryResponse::from)
+                .toList();
+        return new CursorPage<>(content, nextCursor, hasMore, content.size());
     }
 
     @Transactional(readOnly = true)

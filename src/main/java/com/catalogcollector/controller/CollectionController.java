@@ -2,6 +2,7 @@ package com.catalogcollector.controller;
 
 import com.catalogcollector.dto.CollectionEntryRequest;
 import com.catalogcollector.dto.CollectionEntryResponse;
+import com.catalogcollector.dto.CursorPage;
 import com.catalogcollector.service.CollectionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,10 +31,12 @@ public class CollectionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CollectionEntryResponse>> getUserCollection(
-            Authentication authentication) {
+    public ResponseEntity<CursorPage<CollectionEntryResponse>> getUserCollection(
+            Authentication authentication,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int size) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(collectionService.getUserCollection(userId));
+        return ResponseEntity.ok(collectionService.getUserCollectionPaged(userId, cursor, size));
     }
 
     @PostMapping

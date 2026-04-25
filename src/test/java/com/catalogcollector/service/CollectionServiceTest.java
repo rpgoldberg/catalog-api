@@ -3,6 +3,7 @@ package com.catalogcollector.service;
 import com.catalogcollector.controller.GlobalExceptionHandler.ResourceNotFoundException;
 import com.catalogcollector.dto.CollectionEntryRequest;
 import com.catalogcollector.dto.CollectionEntryResponse;
+import com.catalogcollector.dto.CursorPage;
 import com.catalogcollector.entity.CatalogItem;
 import com.catalogcollector.entity.CollectionEntry;
 import com.catalogcollector.entity.User;
@@ -14,9 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +28,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +71,7 @@ class CollectionServiceTest {
                 collectionService.getUserCollection(testUser.getId());
 
         assertThat(results).hasSize(1);
-        assertThat(results.getFirst().catalogItemName()).isEqualTo("Test Figure");
+        assertThat(results.getFirst().catalogItemTitle()).isEqualTo("Test Figure");
     }
 
     @Test
@@ -78,7 +83,7 @@ class CollectionServiceTest {
         CollectionEntryResponse response =
                 collectionService.getEntry(entry.getId(), testUser.getId());
 
-        assertThat(response.catalogItemName()).isEqualTo("Test Figure");
+        assertThat(response.catalogItemTitle()).isEqualTo("Test Figure");
     }
 
     @Test
@@ -175,6 +180,61 @@ class CollectionServiceTest {
 
         assertThatThrownBy(() -> collectionService.deleteEntry(entryId, testUser.getId()))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void getUserCollectionPaged_firstPage_shouldReturnPageWithCursor() {
+        List<CollectionEntry> entries = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            CollectionEntry entry = new CollectionEntry(testUser, testItem);
+            entry.setId(UUID.randomUUID());
+            entry.setCreatedAt(Instant.now().plusSeconds(i));
+            entry.setQuantity(1);
+            entries.add(entry);
+        }
+        when(collectionEntryRepository.findByUserIdFirstPage(eq(testUser.getId()),
+                any(PageRequest.class))).thenReturn(entries);
+
+        CursorPage<CollectionEntryResponse> page =
+                collectionService.getUserCollectionPaged(testUser.getId(), null, 2);
+
+        assertThat(page.content()).hasSize(2);
+        assertThat(page.hasMore()).isTrue();
+        assertThat(page.nextCursor()).isNotNull();
+    }
+
+    @Test
+    void getUserCollectionPaged_withCursor_shouldQueryAfterCursor() {
+        Instant ts = Instant.parse("2025-06-01T00:00:00Z");
+        UUID cursorId = UUID.randomUUID();
+        String cursor = CursorPaginationHelper.encode(ts, cursorId);
+
+        CollectionEntry entry = createEntry();
+        entry.setCreatedAt(Instant.now());
+        when(collectionEntryRepository.findByUserIdAfterCursor(
+                eq(testUser.getId()), eq(ts), eq(cursorId), any(PageRequest.class)))
+                .thenReturn(List.of(entry));
+
+        CursorPage<CollectionEntryResponse> page =
+                collectionService.getUserCollectionPaged(testUser.getId(), cursor, 10);
+
+        assertThat(page.content()).hasSize(1);
+        assertThat(page.hasMore()).isFalse();
+        assertThat(page.nextCursor()).isNull();
+    }
+
+    @Test
+    void getUserCollectionPaged_emptyResult_shouldReturnEmptyPage() {
+        when(collectionEntryRepository.findByUserIdFirstPage(eq(testUser.getId()),
+                any(PageRequest.class))).thenReturn(List.of());
+
+        CursorPage<CollectionEntryResponse> page =
+                collectionService.getUserCollectionPaged(testUser.getId(), null, 10);
+
+        assertThat(page.content()).isEmpty();
+        assertThat(page.hasMore()).isFalse();
+        assertThat(page.nextCursor()).isNull();
+        assertThat(page.size()).isZero();
     }
 
     private CollectionEntry createEntry() {

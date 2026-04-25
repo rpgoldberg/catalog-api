@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,7 +45,8 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
         // Create a catalog item
         CatalogItemRequest itemReq = new CatalogItemRequest(
                 "col-barcode-" + System.nanoTime(), "UPC", "Test Collectible",
-                "TestBrand", "Figures", null, null, null);
+                "TestBrand", null, null, null, null, null,
+                null, null, null);
         HttpHeaders headers = authHeaders();
         ResponseEntity<CatalogItemResponse> itemResponse =
                 restTemplate.exchange("/catalog/items", HttpMethod.POST,
@@ -66,11 +68,12 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().condition()).isEqualTo("Mint");
-        assertThat(response.getBody().catalogItemName()).isEqualTo("Test Collectible");
+        assertThat(response.getBody().catalogItemTitle()).isEqualTo("Test Collectible");
     }
 
     @Test
-    void getUserCollection_shouldReturnEntries() {
+    @SuppressWarnings("unchecked")
+    void getUserCollection_shouldReturnCursorPage() {
         CollectionEntryRequest request = new CollectionEntryRequest(
                 catalogItemId, "Good", null, null, null, 2);
 
@@ -78,12 +81,15 @@ class CollectionIntegrationTest extends BaseIntegrationTest {
         restTemplate.exchange("/collections", HttpMethod.POST,
                 new HttpEntity<>(request, headers), CollectionEntryResponse.class);
 
-        ResponseEntity<CollectionEntryResponse[]> response =
-                restTemplate.exchange("/collections", HttpMethod.GET,
-                        new HttpEntity<>(headers), CollectionEntryResponse[].class);
+        ResponseEntity<Map> response =
+                restTemplate.exchange("/collections?size=10", HttpMethod.GET,
+                        new HttpEntity<>(headers), Map.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotEmpty();
+        assertThat(response.getBody()).containsKey("content");
+        assertThat(response.getBody()).containsKey("hasMore");
+        List<?> content = (List<?>) response.getBody().get("content");
+        assertThat(content).isNotEmpty();
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.catalogcollector.dto;
 
 import com.catalogcollector.entity.CatalogItem;
+import com.catalogcollector.entity.MediaType;
 
 import java.time.Instant;
 import java.util.Map;
@@ -10,27 +11,41 @@ public record CatalogItemResponse(
         UUID id,
         String barcode,
         String barcodeType,
-        String name,
-        String brand,
-        String category,
-        String description,
-        String imageUrl,
-        Map<String, Object> metadata,
+        String canonicalTitle,
+        String canonicalPublisher,
+        Integer canonicalPageCount,
+        String canonicalCoverImageUrl,
+        String canonicalEdition,
+        String canonicalLanguage,
+        String canonicalReleaseDate,
+        String lookupSource,
+        Instant lastEnrichedAt,
+        MediaType mediaType,
+        Map<String, Object> canonicalMetadata,
+        String clientId,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        Instant deletedAt
 ) {
     public static CatalogItemResponse from(CatalogItem item) {
         return new CatalogItemResponse(
                 item.getId(),
                 item.getBarcode(),
                 item.getBarcodeType(),
-                item.getName(),
-                item.getBrand(),
-                item.getCategory(),
-                item.getDescription(),
-                item.getImageUrl(),
-                item.getMetadata(),
+                item.getCanonicalTitle(),
+                item.getCanonicalPublisher(),
+                item.getCanonicalPageCount(),
+                item.getCanonicalCoverImageUrl(),
+                item.getCanonicalEdition(),
+                item.getCanonicalLanguage(),
+                item.getCanonicalReleaseDate(),
+                item.getLookupSource(),
+                item.getLastEnrichedAt(),
+                item.getMediaType(),
+                item.getCanonicalMetadata(),
+                item.getClientId(),
                 item.getCreatedAt(),
-                item.getUpdatedAt());
+                item.getUpdatedAt(),
+                item.getDeletedAt());
     }
 }

@@ -39,7 +39,8 @@ spring.log
 
 # Environment / secrets
 .env
-*.env.local
+.env.*
+!.env.example
 *.pem
 *.key
 
